@@ -15,6 +15,71 @@ DAY = HOUR * 24
 default_path = os.path.split(os.path.abspath(__file__))[0]
 
 
+def post_main():
+    """
+    Главная функция, публикует посты в отложку группы. Настройка производится изменением констант в шапке программы.
+    """
+    # Фильтруем посты не от админа группы в отложке
+    admin_id = api.users.get()[0]['id']
+    queued = api.wall.get(owner_id=args.pub, filter='postponed', count=1000)['items']
+    queued = [x for x in queued if x['created_by'] == admin_id]
+
+    # Количество постов сейчас в отложке
+    q_count = len(queued)
+
+    # Получаем последний пост в отложке, с его времени начинаем генерацию
+    # Если его нет, то начинаем с времени через 5 минут после настоящего
+    last = time.time() + 5 * 60
+    if q_count != 0:
+        last = queued[-1]['date']
+
+    # Количество постов, которое будет зарегистрировано в этот раз
+    need_posts = MAX_QUEUED - q_count
+
+    # Небольшой трюк чтобы зафиксировать количество постов между 0 и 16
+    # Я не помню, почему нельзя кидать более 16 постов за раз. Скорее всего из-за подозрения на спам.
+    need_posts = min(max(need_posts, 0), 16)
+
+    # Генерация случайных временных слотов немного труднее, чем может показаться
+    # Если содержимое функции schedule вас смущает, то игнорируйте её. Сама суть бота не там.
+
+    # Сгенерировать need_posts временных слотов,
+    # с часовым интервалом, начиная с времени last,
+    # в периоде между 0:00 и 24:00, с разбросом 0.1
+    slots = schedule(need_posts, HOUR, last, 0, 24 * HOUR, 0.1)
+
+    # Далее, для каждого временного слота мы делаем пост в отложке паблика
+    for slot, i in zip(slots, range(need_posts)):
+        # Получаем случайную картинку из папки pictures и загружаем в свободное временное окно
+        image = os.path.join(default_path, 'pictures', choice(os.listdir(os.path.join(default_path, 'pictures'))))
+        with open(image, 'rb') as b:
+            s = upload_photo(api, b, args.pub)
+            api.wall.post(owner_id=args.pub, attachments='photo%d_%d' % (s['owner_id'], s['id']), publish_date=slot)
+            print('%d/%d posts done' % (i + 1, need_posts))
+
+            # В связи с ограничением вк на количество вызовов, делаем паузу на 1 секунду
+            time.sleep(1)
+
+        # Удаляем картинку чтобы избежать повторов
+        os.remove(image)
+
+
+def upload_photo(account, f, group):
+    """
+    Загружает фото на стену группы. Подробнее: https://vk.com/dev/upload_files
+    :param account: Объект vk.API, от имени которого будет загружено фото
+    :param f: file-like объект, содержащий фотографию
+    :param group: айди группы
+    :return: Объект photo согласно https://vk.com/dev/objects/photo содержащийся в словаре
+    """
+    url = account.photos.getWallUploadServer(group_id=abs(group))['upload_url']
+    r = requests.post(url, files={'photo': ("photo.jpeg", f)}).json()
+    s = account.photos.saveWallPhoto(group_id=abs(group),
+                                     photo=r['photo'],
+                                     server=r['server'], hash=r['hash'])[0]
+    return s
+
+
 def schedule(n_posts, interval, last_time, from_time, to_time, random_width=0.0):
     """
     Генерирует список времен для публикации
@@ -70,74 +135,9 @@ def random_time_between(x, y, random_width):
      вернуть любое число в интервале
     :return: Случайное чило между x и y с разбросом random_width
     """
-    middle = (x+y)//2
-    scatter = int((y-x)*random_width/2)
+    middle = (x + y) // 2
+    scatter = int((y - x) * random_width / 2)
     return int(middle + randint(-scatter, scatter))
-
-
-def post_main():
-    """
-    Главная функция, публикует посты в отложку группы. Настройка производится изменением констант в шапке программы.
-    """
-    # Фильтруем посты не от админа группы в отложке
-    admin_id = api.users.get()[0]['id']
-    queued = api.wall.get(owner_id=args.pub, filter='postponed', count=1000)['items']
-    queued = [x for x in queued if x['created_by'] == admin_id]
-
-    # Количество постов сейчас в отложке
-    q_count = len(queued)
-
-    # Получаем последний пост в отложке, с его времени начинаем генерацию
-    # Если его нет, то начинаем с времени через 5 минут после настоящего
-    last = time.time() + 5*60
-    if q_count != 0:
-        last = queued[-1]['date']
-
-    # Количество постов, которое будет зарегистрировано в этот раз
-    need_posts = MAX_QUEUED - q_count
-
-    # Небольшой трюк чтобы зафиксировать количество постов между 0 и 16
-    # Я не помню, почему нельзя кидать более 16 постов за раз. Скорее всего из-за подозрения на спам.
-    need_posts = min(max(need_posts, 0), 16)
-
-    # Генерация случайных временных слотов немного труднее, чем может показаться
-    # Если содержимое функции schedule вас смущает, то игнорируйте её. Сама суть бота не там.
-
-    # Сгенерировать need_posts временных слотов,
-    # с часовым интервалом, начиная с времени last,
-    # в периоде между 0:00 и 24:00, с разбросом 0.1
-    slots = schedule(need_posts, HOUR, last, 0, 24 * HOUR, 0.1)
-
-    # Далее, для каждого временного слота мы делаем пост в отложке паблика
-    for slot, i in zip(slots, range(need_posts)):
-        # Получаем случайную картинку из папки pictures и загружаем в свободное временное окно
-        image = os.path.join(default_path, 'pictures', choice(os.listdir(os.path.join(default_path, 'pictures'))))
-        with open(image, 'rb') as b:
-            s = upload_photo(api, b, args.pub)
-            api.wall.post(owner_id=args.pub, attachments='photo%d_%d' % (s['owner_id'], s['id']), publish_date=slot)
-            print('%d/%d posts done' % (i+1, need_posts))
-
-            # В связи с ограничением вк на количество вызовов, делаем паузу на 1 секунду
-            time.sleep(1)
-
-        # Удаляем картинку чтобы избежать повторов
-        os.remove(image)
-
-
-def upload_photo(account, f, group):
-    """
-    Загружает фото на стену группы. Подробнее: https://vk.com/dev/upload_files
-    :param account: Объект vk.API, от имени которого будет загружено фото
-    :param f: file-like объект, содержащий фотографию
-    :param group: айди группы
-    :return: Объект photo согласно https://vk.com/dev/objects/photo содержащийся в словаре
-    """
-    url = account.photos.getWallUploadServer(group_id=abs(group))['upload_url']
-    r = requests.post(url, files={'photo': ("photo.jpeg", f)}).json()
-    s = account.photos.saveWallPhoto(group_id=abs(group),
-                                     photo=r['photo'],
-                                     server=r['server'], hash=r['hash'])[0]
-    return s
 
 
 if __name__ == '__main__':
