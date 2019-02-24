@@ -127,7 +127,7 @@ def post_main():
 def upload_photo(account, f, group):
     """
     Загружает фото на стену группы. Подробнее: https://vk.com/dev/upload_files
-    :param account: Объект vk.API.api, от имени которого будет загружено фото
+    :param account: Объект vk.API, от имени которого будет загружено фото
     :param f: file-like объект, содержащий фотографию
     :param group: айди группы
     :return: Объект photo согласно https://vk.com/dev/objects/photo содержащийся в словаре
