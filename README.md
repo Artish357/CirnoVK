@@ -1,5 +1,5 @@
 # CirnoVK
-Базовый планировщик постов и введение в создание [ботов][https://vk.com/thiswaifudoesnotexist] для [vk.com][https://vk.com] \
+Базовый планировщик постов и введение в создание [ботов][waifu] для [vk.com][https://vk.com] \
 \+ скрипт для глитчевания (моша) картинок!
 
 ## Требования для запуска:
@@ -37,8 +37,8 @@ venv/bin/pip3 install -r requirements.txt
 Для работы с вк программе нужно иметь ваш токен пользователя (не сообщайте его никому,
 в том числе мне!). Для этого, в свою очередь, нужно зарегистрировать приложение
 в базе данных вк.
-* [Странцица регистрации приложения][https://vk.com/apps?act=manage]
-* [Информация о получении токена][https://vk.com/dev/access_token?f=1.%20%D0%9A%D0%BB%D1%8E%D1%87%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D0%B0%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F]
+* [Странцица регистрации приложения][apps]
+* [Информация о получении токена][token]
 
 ## И, наконец, запуск!
 Откройте командную строку и выполните следующую команду:
@@ -65,7 +65,7 @@ pictures!
 
 ## Бонус!
 Если вы работаете под линуксом, то загляните в mosh.sh. Этот скрипт добавляет на картинки
-эффект помех, как на аватарке [группы][https://vk.com/thiswaifudoesnotexist].\
+эффект помех, как на аватарке [группы][waifu].\
 Он работает только с jpg-изображениями. В основе лежит добавление мусорных данных в определенные
 места картинки. Скрипт вызывается с двумя аргументами: путь до картинки и количество мусорных бит,
 которое следует добавить. Осторожно, слишком большие числа рискуют повредить 
@@ -78,8 +78,8 @@ pictures!
 
 
 [https://vk.com]: https://vk.com
-[https://vk.com/thiswaifudoesnotexist]: https://vk.com/thiswaifudoesnotexist
+[waifu]: https://vk.com/thiswaifudoesnotexist
 [vk.com/dev]: https://vk.com/dev
-[https://vk.com/apps?act=manage]: https://vk.com/apps?act=manage
+[apps]: https://vk.com/apps?act=manage
 [issue]: https://github.com/Artish357/CirnoVK/issues
-[https://vk.com/dev/access_token?f=1.%20%D0%9A%D0%BB%D1%8E%D1%87%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D0%B0%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F]: https://vk.com/dev/access_token?f=1.%20%D0%9A%D0%BB%D1%8E%D1%87%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D0%B0%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F
+[token]: https://vk.com/dev/access_token?f=1.%20%D0%9A%D0%BB%D1%8E%D1%87%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D0%B0%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F
