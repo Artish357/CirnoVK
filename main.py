@@ -7,12 +7,17 @@ import requests
 import time
 import vk
 
-MAX_QUEUED = 3  # Максимальное количество постов в отложке. Помните, что лимит вк -- 50 постов
 
 # Константы
 HOUR = 3600
 DAY = HOUR * 24
 default_path = os.path.split(os.path.abspath(__file__))[0]
+
+
+MAX_QUEUED = 3            # Максимальное количество постов в отложке. Помните, что лимит вк -- 50 постов
+START_DAY_TIME = 0        # Время с начала дня, с которого будут ставиться посты. По умолчанию 0:00
+END_DAY_TIME = 24 * HOUR  # Время с начала дня, до которого будут ставиться посты. По умолчанию 24:00
+INTERVAL = HOUR           # Интервал постов. По умолчанию -- 1 час
 
 
 def post_main():
@@ -46,7 +51,7 @@ def post_main():
     # Сгенерировать need_posts временных слотов,
     # с часовым интервалом, начиная с времени last,
     # в периоде между 0:00 и 24:00, с разбросом 0.1
-    slots = schedule(need_posts, HOUR, last, 0, 24 * HOUR, 0.1)
+    slots = schedule(need_posts, INTERVAL, last, START_DAY_TIME, END_DAY_TIME, 0.1)
 
     # Далее, для каждого временного слота мы делаем пост в отложке паблика
     for slot, i in zip(slots, range(need_posts)):
