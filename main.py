@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import argparse
-from random import randint, choice
+import random
 import os
 import requests
 import time
@@ -25,7 +25,14 @@ def post_main():
     Главная функция, публикует посты в отложку группы. Настройка производится изменением констант в шапке программы.
     """
     # Фильтруем посты не от админа группы в отложке
+
+    # Прежде, чем фильтровать, нужно получить айди админа. Предполагаем, что админ это тот, с чьим токеном
+    # работает программа
+    # Вызов vk.api.users.get, почитать подробнее: https://vk.com/dev/users.get
     admin_id = api.users.get()[0]['id']
+
+    # Получаем отложку паблика
+    # Вызов vk.wall.users.get, почитать подробнее: https://vk.com/dev/wall.get
     queued = api.wall.get(owner_id=args.pub, filter='postponed', count=1000)['items']
     queued = [x for x in queued if x['created_by'] == admin_id]
 
@@ -54,11 +61,22 @@ def post_main():
     slots = schedule(need_posts, INTERVAL, last, START_DAY_TIME, END_DAY_TIME, 0.1)
 
     # Далее, для каждого временного слота мы делаем пост в отложке паблика
-    for slot, i in zip(slots, range(need_posts)):
-        # Получаем случайную картинку из папки pictures и загружаем в свободное временное окно
-        image = os.path.join(default_path, 'pictures', choice(os.listdir(os.path.join(default_path, 'pictures'))))
+    # enumerate возвращает последовательность из индекса элемента последовательности и самого элемента
+    for i, slot in enumerate(slots):
+        # Получаем список картинок в папке pictures
+        pictures = os.listdir(os.path.join(default_path, 'pictures'))
+        # И выбираем из них случайную
+        image = random.choice(pictures)
+        # Необходимо соединить имя картинки с путем до нее чтобы можно было ее прочитать
+        image = os.path.join(default_path, 'pictures', image)
+
+        # Открываем картинку как файл b
         with open(image, 'rb') as b:
+            # И загружаем в вк
             s = upload_photo(api, b, args.pub)
+
+            # Остается только опубликовать ее в группе
+            # Вызов vk.api.wall.post, почитать подробнее: https://vk.com/dev/wall.post
             api.wall.post(owner_id=args.pub, attachments='photo%d_%d' % (s['owner_id'], s['id']), publish_date=slot)
             print('%d/%d posts done' % (i + 1, need_posts))
 
@@ -142,7 +160,7 @@ def random_time_between(x, y, random_width):
     """
     middle = (x + y) // 2
     scatter = int((y - x) * random_width / 2)
-    return int(middle + randint(-scatter, scatter))
+    return int(middle + random.randint(-scatter, scatter))
 
 
 if __name__ == '__main__':
